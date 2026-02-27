@@ -106,6 +106,7 @@ body{font-family:-apple-system,'Hiragino Sans','Yu Gothic UI',Meiryo,sans-serif;
     <div class="rst"><div class="sb"><div class="sn" id="xC">0</div><div class="sl">せいかい</div></div><div class="sb"><div class="sn" id="xN">0</div><div class="sl">ノーヒント</div></div><div class="sb"><div class="sn" id="xW">0</div><div class="sl">NEW!</div></div></div>
     <div class="rbs"><button class="rb p" onclick="home()">もどる</button><button class="rb s" onclick="showRank()">🏆 ランキング</button><button class="rb s" onclick="col()">🗾 コレクション</button></div>
     <div id="rNew" class="rNew" style="display:none">🎊 ハイスコア こうしん！</div>
+    <div id="trailAltEarned" class="rNew" style="display:none;color:#886600"></div> <!-- 🆕 ALT表示 -->
   </div></div>
   <div class="scr" id="s3">
     <div class="ct"><button class="bb" onclick="home()">←</button><h2>🗾 コレクション</h2><span class="cc" id="cC">0/47</span></div>
@@ -176,16 +177,19 @@ var D=[{id:1,n:"北海道",r:"ほっかいどう",g:"北海道",h:["でっかい
 var RG=[{n:"北海道",i:[1]},{n:"東北",i:[2,3,4,5,6,7]},{n:"関東",i:[8,9,10,11,12,13,14]},{n:"中部",i:[15,16,17,18,19,20,21,22,23]},{n:"近畿",i:[24,25,26,27,28,29,30]},{n:"中国",i:[31,32,33,34,35]},{n:"四国",i:[36,37,38,39]},{n:"九州・沖縄",i:[40,41,42,43,44,45,46,47]}];
 var EZ=[1,2,12,13,23,27,34,37,40,47],NM=[1,2,5,7,9,12,13,14,17,20,23,26,27,34,47];
 var cl={},G={},ranking={easy:[],normal:[],hard:[]};
+var trailAltEarned=0; // 🆕 ALT獲得数追跡
 function ss(id){var s=document.querySelectorAll('.scr');for(var i=0;i<s.length;i++)s[i].classList.remove('on');document.getElementById(id).classList.add('on')}
-function home(){ss('s0')}
+function home(){ss('s0');if(typeof TrailNav!=='undefined')TrailNav.showNav()} // 🆕
 function sf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}}
 function fp(id){for(var i=0;i<D.length;i++)if(D[i].id===id)return D[i];return null}
 function go(m){
   G={q:[],i:0,s:0,c:0,nh:0,nw:0,hu:0,a:false,mode:m};
+  trailAltEarned=0; // 🆕 ALTリセット
   var ids=m==='easy'?EZ:m==='normal'?NM:null,pool=[];
   if(ids){for(var k=0;k<ids.length;k++)pool.push(fp(ids[k]))}else{for(var k=0;k<D.length;k++)pool.push(D[k])}
   sf(pool);G.q=pool.slice(0,m==='easy'?10:m==='normal'?15:20);
   ss('s1');lq();
+  if(typeof TrailNav!=='undefined')TrailNav.hideNav(); // 🆕
 }
 function lq(){
   var q=G.q[G.i],t=G.q.length;G.hu=0;G.a=false;
@@ -217,6 +221,7 @@ function ans(bt,sel,cor){
   var img=document.getElementById('silImg');
   if(sel.id===cor.id){
     bt.classList.add('ok');G.c++;var pt=Math.max(10,30-G.hu*5);if(G.hu===0)G.nh++;G.s+=pt;if(!cl[cor.id]){cl[cor.id]=true;G.nw++}
+    if(typeof TrailNav!=='undefined')TrailNav.earnAlt(1,'正解');trailAltEarned++; // 🆕
     document.getElementById('qS').textContent=G.s+' pt';
     img.className='sil-img colored';
     sfl(bt,'+'+pt);cft(8);setTimeout(function(){G.i++;if(G.i>=G.q.length)res();else lq()},900);
@@ -235,6 +240,7 @@ function yk(p){
   setTimeout(function(){o.classList.remove('sh');G.i++;if(G.i>=G.q.length)res();else lq()},3000);
 }
 function res(){
+  if(typeof TrailNav!=='undefined'){TrailNav.flushAltWithRetry();TrailNav.showNav();} // 🆕 ALT送信
   ss('s2');var t=G.q.length,pc=G.c/t;var e,ti;
   if(pc===1){e='👑';ti='パーフェクト！';cft(30)}else if(pc>=.8){e='🎉';ti='すばらしい！';cft(16)}else if(pc>=.5){e='😊';ti='いいかんじ！'}else{e='💪';ti='つぎはがんばろう！'}
   document.getElementById('rE').textContent=e;document.getElementById('rT').textContent=ti;
@@ -251,6 +257,8 @@ function res(){
   }else{
     document.getElementById('rNew').style.display='none';
   }
+  // 🆕 ALT獲得表示
+  if(trailAltEarned>0){var ae=document.getElementById('trailAltEarned');if(ae){ae.style.display='block';ae.textContent='\uD83D\uDCB0 +'+trailAltEarned+' ALT ゲット！';}}
 }
 function showRank(){
   ss('s4');
@@ -283,4 +291,25 @@ function col(){
 }
 function sfl(el,tx){var r=el.getBoundingClientRect(),d=document.createElement('div');d.className='fp';d.textContent=tx;d.style.left=(r.left+r.width/2-16)+'px';d.style.top=(r.top-8)+'px';document.body.appendChild(d);setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d)},950)}
 function cft(n){var cs=['#00e5ff','#ff6b9d','#ffd700','#4cff91','#845ec2','#ff9671'];for(var i=0;i<n;i++){var c=document.createElement('div');c.className='cf';c.style.left=(Math.random()*100)+'%';c.style.top='-8px';c.style.background=cs[Math.floor(Math.random()*cs.length)];c.style.animationDelay=(Math.random()*.4)+'s';c.style.animationDuration=(1.2+Math.random()*.8)+'s';document.body.appendChild(c);(function(e){setTimeout(function(){if(e.parentNode)e.parentNode.removeChild(e)},2500)})(c)}}
-</script></body></html>
+
+// 🆕 TRAIL共通ナビ用
+window.showGameHome=function(){
+  if(!G.a&&G.q&&G.q.length>0&&G.i<G.q.length){
+    if(!confirm('ゲームを中断してホームに戻りますか？'))return;
+    if(typeof TrailNav!=='undefined')TrailNav.flushAltWithRetry();
+  }
+  home();
+};
+</script>
+<!-- ===== 🆕 TRAIL共通ナビ ===== -->
+<script src="trail-nav.js"></script>
+<script>
+TrailNav.init({
+  gameName: '地図シルエット',
+  gameEmoji: '🗾',
+  gameHomeId: 's0',
+  tgp32Url: 'https://trail-game-pro-3-2.onrender.com',
+  apiBase:  'https://trail-game-pro-3-2.onrender.com/api',
+});
+</script>
+</body></html>
